@@ -5,7 +5,7 @@
  
 import './SafeMath.sol'; 
 import './IBEP20.sol'; 
-import './SlimeToken.sol';
+import './CookieToken.sol';
 import './ReentrancyGuard.sol';
 
 pragma solidity 0.6.12;
@@ -107,9 +107,9 @@ library SafeBEP20 {
  
 
 //  referral
-interface SlimeFriends {
-    function setSlimeFriend(address farmer, address referrer) external;
-    function getSlimeFriend(address farmer) external view returns (address);
+interface CookieFriends {
+    function setCookieFriend(address farmer, address referrer) external;
+    function getCookieFriend(address farmer) external view returns (address);
 }
 
  contract IRewardDistributionRecipient is Ownable {
@@ -147,14 +147,14 @@ interface SlimeFriends {
  * allowances. See {IBEP20-approve}.
  */
 
-// MasterChef is the master of slime. He can make slime and he is a fair guy.
+// MasterChef is the master of cookie. He can make cookie and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once slime is sufficiently
+// will be transferred to a governance smart contract once cookie is sufficiently
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
+contract CookieFactory   is IRewardDistributionRecipient , ReentrancyGuard {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
@@ -163,13 +163,13 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
         uint256 amount;     // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of slimes
+        // We do some fancy math here. Basically, any point in time, the amount of cookies
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accslimePerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.acccookiePerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accslimePerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `acccookiePerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -178,21 +178,21 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
     // Info of each pool.
     struct PoolInfo {
         IBEP20 lpToken;           // Address of LP token contract.
-        uint256 allocPoint;       // How many allocation points assigned to this pool. slimes to distribute per block.
-        uint256 lastRewardBlock;  // Last block number that slimes distribution occurs.
-        uint256 accslimePerShare; // Accumulated slimes per share, times 1e12. See below.
+        uint256 allocPoint;       // How many allocation points assigned to this pool. cookies to distribute per block.
+        uint256 lastRewardBlock;  // Last block number that cookies distribution occurs.
+        uint256 acccookiePerShare; // Accumulated cookies per share, times 1e12. See below.
         uint256 fee;
     }
  
     // The  TOKEN!
-    SlimeToken public st;
+    CookieToken public st;
      
     // Dev address.aqui va el dinero para la falopa del dev
     address public devaddr;
     
     address public divPoolAddress;
-    // slime tokens created per block.
-    uint256 public slimesPerBlock;
+    // cookie tokens created per block.
+    uint256 public cookiesPerBlock;
  
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
     
@@ -241,11 +241,11 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
     mapping (uint256 => bool) public enablemethod;   
        
     constructor(
-        SlimeToken _st,
+        CookieToken _st,
         
         address _devaddr,
         address _divPoolAddress, 
-        uint256 _slimesPerBlock,
+        uint256 _cookiesPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public {
@@ -253,7 +253,7 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
       
         devaddr = _devaddr;
         divPoolAddress = _divPoolAddress;
-        slimesPerBlock = _slimesPerBlock;
+        cookiesPerBlock = _cookiesPerBlock;
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
         
@@ -296,13 +296,13 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
             lpToken: _lpToken,
             allocPoint: _allocPoint,
             lastRewardBlock: lastRewardBlock,
-            accslimePerShare: 0,
+            acccookiePerShare: 0,
             fee:__fee
         }));
         
     }
 
-    // Update the given pool's SLIME allocation point. Can only be called by the owner. if update lastrewardblock, need update pools
+    // Update the given pool's COOKIE allocation point. Can only be called by the owner. if update lastrewardblock, need update pools
     function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate, uint256 __lastRewardBloc,uint256 __fee) public onlyOwner validatePoolByPid(_pid) { 
         // if _fee == 100 then 100% of dev and treasury fee is applied, if _fee = 50 then 50% discount, if 0 , no fee
          require(__fee<=100);
@@ -324,15 +324,15 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
     function pendingReward(uint256 _pid, address _user) validatePoolByPid(_pid)  external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accslimePerShare = pool.accslimePerShare;
+        uint256 acccookiePerShare = pool.acccookiePerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) { 
-            uint256 slimeReward = slimesPerBlock.mul(pool.allocPoint).div(totalAllocPoint);
+            uint256 cookieReward = cookiesPerBlock.mul(pool.allocPoint).div(totalAllocPoint);
 
             
-            accslimePerShare = accslimePerShare.add(slimeReward.mul(1e12).div(lpSupply));
+            acccookiePerShare = acccookiePerShare.add(cookieReward.mul(1e12).div(lpSupply));
         }
-        return user.amount.mul(accslimePerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(acccookiePerShare).div(1e12).sub(user.rewardDebt);
     }
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -356,14 +356,14 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
             return;
         }
          
-        uint256 slimeReward = slimesPerBlock.mul(pool.allocPoint).div(totalAllocPoint);
-         //st.mint(devaddr, slimeReward.div(5));
-         st.mint(address(this), slimeReward); 
+        uint256 cookieReward = cookiesPerBlock.mul(pool.allocPoint).div(totalAllocPoint);
+         //st.mint(devaddr, cookieReward.div(5));
+         st.mint(address(this), cookieReward);
          //treasury and dev
-         st.mint(divPoolAddress, slimeReward.mul(divPoolFee).div(1000));
-         st.mint(devaddr, slimeReward.mul(divdevfee).div(1000));
+         st.mint(divPoolAddress, cookieReward.mul(divPoolFee).div(1000));
+         st.mint(devaddr, cookieReward.mul(divdevfee).div(1000));
 
-        pool.accslimePerShare = pool.accslimePerShare.add(slimeReward.mul(1e12).div(lpSupply));
+        pool.acccookiePerShare = pool.acccookiePerShare.add(cookieReward.mul(1e12).div(lpSupply));
         pool.lastRewardBlock = block.number;
     }
     
@@ -400,11 +400,11 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
  
         updatePool(_pid); 
          if (_amount>0 && rewardReferral != address(0) && referrer != address(0)) {
-            SlimeFriends(rewardReferral).setSlimeFriend (msg.sender, referrer);
+            CookieFriends(rewardReferral).setCookieFriend (msg.sender, referrer);
         }
         
         if (user.amount > 0) {
-              pending = user.amount.mul(pool.accslimePerShare).div(1e12).sub(user.rewardDebt); 
+              pending = user.amount.mul(pool.acccookiePerShare).div(1e12).sub(user.rewardDebt);
 
                if(pending > 0) {
                     payRefFees(pending);
@@ -433,7 +433,7 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
             }
  
         } 
-        user.rewardDebt = user.amount.mul(pool.accslimePerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.acccookiePerShare).div(1e12);
  
         emit Deposit(msg.sender, _pid, _amount);
     }
@@ -457,10 +457,10 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
         
            if (user.amount > 0) {
             PoolInfo storage pool = poolInfo[_pid];   
-            user.rewardDebt = user.amount.mul(pool.accslimePerShare).div(1e12);
+            user.rewardDebt = user.amount.mul(pool.acccookiePerShare).div(1e12);
             updatePool(_pid);
             
-            uint256 pending = user.amount.mul(pool.accslimePerShare).div(1e12).sub(user.rewardDebt);
+            uint256 pending = user.amount.mul(pool.acccookiePerShare).div(1e12).sub(user.rewardDebt);
             if(pending > 0) {
                 payRefFees(pending);
                  
@@ -485,8 +485,8 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
 
         updatePool(_pid);
 
-        uint256 pending = user.amount.mul(pool.accslimePerShare).div(1e12).sub(user.rewardDebt);
-        user.rewardDebt = user.amount.mul(pool.accslimePerShare).div(1e12);
+        uint256 pending = user.amount.mul(pool.acccookiePerShare).div(1e12).sub(user.rewardDebt);
+        user.rewardDebt = user.amount.mul(pool.acccookiePerShare).div(1e12);
 
         if(pending > 0) {
             safeStransfer(msg.sender, pending);
@@ -508,7 +508,7 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
    
          address referrer = address(0);
           if (rewardReferral != address(0)) {
-                referrer = SlimeFriends(rewardReferral).getSlimeFriend (msg.sender);
+                referrer = CookieFriends(rewardReferral).getCookieFriend (msg.sender);
                
             }
             
@@ -533,10 +533,10 @@ contract SlimeFactory   is IRewardDistributionRecipient , ReentrancyGuard {
       
     }
   
-    function changeSlimiesPerBlock(uint256 _slimesPerBlock) public onlyOwner {
+    function changeSlimiesPerBlock(uint256 _cookiesPerBlock) public onlyOwner {
 
-        emit UpdateSlimiesPerBlock(slimesPerBlock,_slimesPerBlock); 
-        slimesPerBlock = _slimesPerBlock;
+        emit UpdateSlimiesPerBlock(cookiesPerBlock,_cookiesPerBlock);
+        cookiesPerBlock = _cookiesPerBlock;
     }
  
     function safeStransfer(address _to, uint256 _amount) internal {

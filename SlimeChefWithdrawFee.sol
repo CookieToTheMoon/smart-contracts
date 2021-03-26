@@ -674,7 +674,7 @@ import 'ReentrancyGuard.sol';
 
 pragma solidity 0.6.12;
  
-contract SlimeChefWithdrawFee is Ownable ,ReentrancyGuard {
+contract CookieChefWithdrawFee is Ownable ,ReentrancyGuard {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 

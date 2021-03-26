@@ -950,7 +950,7 @@ contract BEP20 is Context, IBEP20, Ownable {
         );
     }
 }
-contract SlimeFriends {
+contract CookieFriends {
       using SafeBEP20 for IBEP20;
     
     
@@ -995,7 +995,7 @@ contract SlimeFriends {
         owner = nextOwner;
     }
 
-    function setSlimeFriend(address farmer, address referrer) external onlyAdmin {
+    function setCookieFriend(address farmer, address referrer) external onlyAdmin {
         if (referrers[farmer] == address(0) && referrer != address(0)) {
             referrers[farmer] = referrer;
             referredCount[referrer] += 1;
@@ -1003,7 +1003,7 @@ contract SlimeFriends {
         }
     }
 
-    function getSlimeFriend(address farmer) external view returns (address) {
+    function getCookieFriend(address farmer) external view returns (address) {
         return referrers[farmer];
     }
 

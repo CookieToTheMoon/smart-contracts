@@ -27,9 +27,9 @@ interface ISmartChef {
 }
  
  //  referral
-interface SlimeFriends {
-    function setSlimeFriend(address farmer, address referrer) external;
-    function getSlimeFriend(address farmer) external view returns (address);
+interface CookieFriends {
+    function setCookieFriend(address farmer, address referrer) external;
+    function getCookieFriend(address farmer) external view returns (address);
 }
 contract Pausable is Context {
     /**
@@ -107,7 +107,7 @@ contract Pausable is Context {
     }
 }
  // CakeToken with Governance.
-contract SlimeToken is BEP20  {
+contract CookieToken is BEP20  {
     /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
     function mint(address _to, uint256 _amount) external onlyOwner {
         _mint(_to, _amount);
@@ -145,7 +145,7 @@ contract SlimeToken is BEP20  {
     }
  
 }
-contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,ReentrancyGuard {
+contract CookieSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,ReentrancyGuard {
     using SafeBEP20 for IBEP20;
     using Address for address;
     using SafeMath for uint256;   
@@ -208,7 +208,7 @@ contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,Ree
 
     uint256 constant public approvalDelay = 500000;
 
-    address public devSlime;
+    address public devCookie;
     
     uint constant public devFee = 5;
     uint constant public hunterFee = 5; 
@@ -232,7 +232,7 @@ contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,Ree
       address public mainToken;
       
         
-     SlimeToken public stoken;
+     CookieToken public stoken;
        
       constructor (
         address _token,  
@@ -241,8 +241,8 @@ contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,Ree
     ) public  {
          mainToken= _token; 
          main = IBEP20(_token);
-         stoken= new SlimeToken(stoken_name,stoken_ticker);
-         devSlime=owner();
+         stoken= new CookieToken(stoken_name,stoken_ticker);
+         devCookie=owner();
  
         IBEP20(wbnb).safeApprove(unirouter, uint(-1));
     }
@@ -281,7 +281,7 @@ contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,Ree
         
         
           if (shares>0 && rewardReferral != address(0) && referrer != address(0)) {
-            SlimeFriends(rewardReferral).setSlimeFriend (msg.sender, referrer);
+            CookieFriends(rewardReferral).setCookieFriend (msg.sender, referrer);
             }
         
         stoken.mint(msg.sender, shares); 
@@ -410,7 +410,7 @@ contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,Ree
         if(devFee>0)
         {
             uint256 rewardsFee = cakeFeesBalance.mul(devFee).div(totalfees);
-            IBEP20(main).safeTransfer(devSlime, rewardsFee);
+            IBEP20(main).safeTransfer(devCookie, rewardsFee);
         }
         if(treasuryFee>0)
         {
@@ -476,7 +476,7 @@ contract SlimeSingleVault is Ownable, Pausable ,IRewardDistributionRecipient,Ree
         if(pool.enabled)
           {
             chefWithdraw(balanceOfPool());
-            harvestPool(false,devSlime);     
+            harvestPool(false,devCookie);
             actualPool=pool;
           }  
  
